@@ -39,10 +39,10 @@ c. Cloud Part which acts as the data store and Operation Centre
         Based on the different profiles,it should optimize the use of electicity.
         Allows users to predict the Rise in use and preempt maintainence
         
-    #### Data format existing between ESP and ATMEGA to collect current usage
+#### Data format existing between ESP and ATMEGA to collect current usage
     JSON is the datafromat used for communication between ESP and ATMEGA. There is always a one to one mapping between ATMEGA and ESP, hence the Dataformat JSON is transmitted via Serial port.
     
-'''
+
 ##### Request 
    {
        " ReadPW ":"ReadALL",
