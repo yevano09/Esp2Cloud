@@ -1,6 +1,11 @@
+#include <ArduinoJson.h>
+
 #include <SPI.h>
 #include <LoRa.h>
 #include <U8x8lib.h>
+
+
+
 
 #define SS 18
 #define RST 14
@@ -10,9 +15,13 @@
 U8X8_SSD1306_128X64_NONAME_SW_I2C u8x8(/* clock=*/ 15, /* data=*/ 4, /* reset=*/ 16);
 char buf[10];
 int counter = 0;
+DynamicJsonBuffer   jsonBuffer(200);
+JsonObject& root = jsonBuffer.createObject();
 
 void setup() {
   Serial.begin(115200);
+
+  root["DeviceID"] = "101";
 
   SPI.begin(5, 19, 27, 18);
   LoRa.setPins(SS, RST, DI0);
@@ -32,12 +41,17 @@ void setup() {
 void loop() {
   Serial.print("Sending packet: ");
   Serial.println(counter);
-
+  
+  root["Temp"]=counter;
   // send packet
+  String counterStr;
+  root.printTo(counterStr);
+  Serial.println(counterStr);
   LoRa.beginPacket();
-  LoRa.print("{Temp : ");
-  LoRa.print(counter);
-  LoRa.print(" }");
+  
+  LoRa.print(counterStr);
+  //LoRa.print(counter);
+  //LoRa.print(" }");
   LoRa.endPacket();
   u8x8.drawString(0, 0, "Sent packet  ");
  // char currentrs[8];
