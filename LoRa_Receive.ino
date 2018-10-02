@@ -1,3 +1,5 @@
+#include <ArduinoJson.h>
+
 /*
   LoRa Receive Example :
   Support Devices: LG01. 
@@ -14,13 +16,13 @@
 #include <LoRa.h>
 #include <Console.h>
 #include <Process.h>
-#include <ArduinoJson.h>
+
 
 // Set center frequency
 uint32_t freq = 433E6;
 int SF = 12,Denominator = 5;
 long SBW = 125E3;
-  StaticJsonDocument<200> doc;
+
   
 long old_time=millis();
 long new_time;
@@ -40,9 +42,50 @@ void receivepacket() {
     incoming+="\0";
     Console.println(incoming+"'");
     
+    StaticJsonBuffer<200> jsonBuffer;
+
+    JsonObject& root = jsonBuffer.parseObject(incoming);
+      if (!root.success()) {
+    Console.println("parseObject() failed");
+    //return;
+  }
+    const char* sensor = root["DeviceID"];
+    int temp = root["Temp"];
+
+    updateDatatoMqtt(sensor, temp);
     //Console.println();
  
   }
+}
+
+void updateDatatoMqtt(const char* sen, int tem)
+{
+  Console.println("Call Linux Command to Send Data");
+  Process p; // Create a process and call it "p", this process will execute a Linux curl command
+
+ 
+ p.begin("python");   //Script execution.In this example I use the script name is Test.
+ p.addParameter("/root/mqttpublish.py");
+ p.addParameter(sen);
+ p.addParameter(String(tem));
+ p.run();
+ 
+ Console.print("Feedback from Linux: ");
+
+  // If there's output from Linux,
+  // send it out the Console:
+
+  while (p.available()>0) 
+  {
+
+    char c = p.read();
+    Console.write(c);
+
+  }
+  Console.println("");
+  Console.println("Call Finished");
+  Console.println("####################################");
+  Console.println("");
 }
 
 void show_config()
@@ -56,7 +99,6 @@ void setup() {
   Bridge.begin(115200);
   Console.begin();
 //  while (!Console);
-
   Console.println("LoRa Receiver");
 
   if (!LoRa.begin(freq)) {
